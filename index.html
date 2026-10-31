@@ -21,7 +21,7 @@ button,select,input{font:inherit}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.sec{background:transparent;color:var(--pri);border:1.5px solid var(--pri)}
 label{display:block;font-weight:600;margin:12px 0 4px;font-size:.95rem}
-input[type=text],input[type=number],select{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+input[type=text],input[type=number],input[type=email],input[type=tel],select{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
 .chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:10px 0}
 .chk input{margin-top:5px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -68,9 +68,13 @@ ul{padding-left:20px;margin:8px 0}
 <div><label for="polo">Polo</label><input type="text" id="polo" maxlength="80"></div>
 <div><label for="ano">Ano de ingresso</label><input type="number" id="ano" min="2000" max="2030" inputmode="numeric"></div>
 </div>
+<label for="email">E-mail</label>
+<input type="email" id="email" autocomplete="email" maxlength="120" inputmode="email">
+<label for="zap">WhatsApp <span class="mut">(opcional, com DDD)</span></label>
+<input type="tel" id="zap" autocomplete="tel" maxlength="20" inputmode="tel" placeholder="(87) 99999-9999">
 <div class="hp" aria-hidden="true"><label for="site">Não preencha</label><input type="text" id="site" tabindex="-1" autocomplete="off"></div>
 <label class="chk"><input type="checkbox" id="c18"><span>Declaro ser maior de 18 anos e aluno(a) ou apoiador(a) desta causa.</span></label>
-<label class="chk"><input type="checkbox" id="clgpd"><span>Concordo com o tratamento dos meus dados para contar assinaturas e comprovar o apoio ao pedido (LGPD, art. 7º, I). Meu nome não aparece publicamente. Responsável pela coleta: Ricardo Freitas, ricardocienciadedados@gmail.com. Posso pedir acesso, correção ou exclusão dos dados a qualquer momento por esse contato.</span></label>
+<label class="chk"><input type="checkbox" id="clgpd"><span>Concordo com o tratamento dos meus dados (nome, curso, polo, ano de ingresso, e-mail e WhatsApp) para contar assinaturas, comprovar o apoio ao pedido e receber informações sobre o andamento dele (LGPD, art. 7º, I). Meus dados pessoais não aparecem publicamente. Responsável pela coleta: Ricardo Freitas, ricardocienciadedados@gmail.com. Posso pedir acesso, correção ou exclusão dos dados a qualquer momento por esse contato.</span></label>
 <button class="btn" id="enviar" type="button">Assinar</button>
 <div class="msg" id="fmsg" role="status"></div>
 </section>
@@ -109,13 +113,16 @@ if(jaAssinou){$("enviar").disabled=true;say("Você já assinou neste aparelho. O
 
 $("enviar").onclick=async()=>{
   const nome=norm($("nome").value),polo=norm($("polo").value),ano=parseInt($("ano").value,10);
+  const email=$("email").value.trim().toLowerCase(),zap=$("zap").value.replace(/\D/g,"");
   const curso=sel.value.startsWith("Outro")?norm($("outro").value):sel.value;
   if(!nome||!curso||!polo||!(ano>=2000&&ano<=2030))return say("Preencha nome, curso, polo e ano de ingresso.","err");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return say("Informe um e-mail válido.","err");
+  if(zap&&(zap.length<10||zap.length>13))return say("WhatsApp inválido. Use DDD + número ou deixe em branco.","err");
   if(!$("c18").checked||!$("clgpd").checked)return say("Marque as duas declarações para assinar.","err");
   $("enviar").disabled=true;say("Enviando…");
   try{
     const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({nome,curso,polo,ano,consentimento:true,site:$("site").value})});
+      body:JSON.stringify({nome,curso,polo,ano,email,zap,consentimento:true,site:$("site").value})});
     const j=await r.json();
     if(j.ok){try{localStorage.setItem("assinou-ead","1")}catch(e){}say("Assinatura registrada. Obrigado!","ok");carregar()}
     else{$("enviar").disabled=false;say(j.erro||"Não foi possível registrar.","err")}
