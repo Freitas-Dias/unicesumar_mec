@@ -25,7 +25,7 @@ O objetivo central é solicitar que estudantes matriculados até 2026 tenham pre
 
 | Funcionalidade | Descrição |
 |---|---|
-| Formulário de assinatura | Cadastro de nome, curso, polo e ano de ingresso. |
+| Formulário de assinatura | Cadastro de nome, curso, polo, email, WhatsApp e ano de ingresso. |
 | Seleção de cursos | Lista de cursos com opção de informar outro. |
 | Validação de dados | Verificação dos campos obrigatórios e consentimentos. |
 | Contagem de assinaturas | Exibição do total de assinaturas registradas. |
